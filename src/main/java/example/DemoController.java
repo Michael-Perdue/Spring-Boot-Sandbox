@@ -1,10 +1,11 @@
 package example;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -13,8 +14,8 @@ public class DemoController {
     private final FileLoaderService fileLoaderService;
 
     @GetMapping("/hello")
-    public String hello() {
-        return "Hello, World!";
+    public ResponseEntity<String> hello() {
+        return new ResponseEntity<>("Hello, World!",HttpStatus.OK);
     }
 
     @Autowired
@@ -22,8 +23,12 @@ public class DemoController {
         this.fileLoaderService = fileLoaderService;
     }
 
-    @GetMapping("/file")
-    public ArrayList<HashMap<String,String>> getFile(){
-        return fileLoaderService.getFile("GBP");
+
+    @GetMapping(path="/file")
+    public ResponseEntity<?> getFile(@RequestParam(value="name",defaultValue ="GBP.csv") String fileName){
+        ArrayList<HashMap<String,String>> values = fileLoaderService.getFile(fileName);
+        if(values == null)
+            return new ResponseEntity<>("File corrupted or no file found with the name: " + fileName,HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(fileLoaderService.getFile(fileName), HttpStatus.OK);
     }
 }
