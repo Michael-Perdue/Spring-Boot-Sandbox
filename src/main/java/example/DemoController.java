@@ -28,10 +28,14 @@ public class DemoController {
 
     @GetMapping(path="/file")
     public ResponseEntity<?> getFile(@RequestParam(value="name",defaultValue ="GBP.csv") String fileName){
-        ArrayList<HashMap<String,String>> values = fileLoaderService.getFile(fileName);
-        if(values == null)
-            return new ResponseEntity<>("File corrupted or no file found with the name: " + fileName,HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(fileLoaderService.getFile(fileName), HttpStatus.OK);
+        try {
+            ArrayList<HashMap<String, String>> values = fileLoaderService.getFile(fileName);
+            if (values == null)
+                return new ResponseEntity<>("No file found with the name: " + fileName, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(values, HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>("An error occurred whilst reading the file ", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping(path = "/file/upload")

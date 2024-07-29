@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -18,20 +19,18 @@ public class FileLoaderService {
         loadFiles();
     }
 
-    public ArrayList<HashMap<String,String>> getFile(String name){
-        try {
-            name = name.replaceAll("\\.csv","");
-            for (File file : files) {
-                String foundFile = file.getName().replaceAll("\\.csv","");
-                if (foundFile.equals(name)) {
-                    return getFileContent(file);
-                }
+    public ArrayList<HashMap<String,String>> getFile(String name) throws Exception {
+        name = name.replaceAll("\\.csv","");
+        for (File file : files) {
+            String foundFile = file.getName().replaceAll("\\.csv","");
+            if (foundFile.equals(name)) {
+                return getFileContent(file);
             }
-        }catch (Exception e){e.printStackTrace();}
+        }
         return null;
     }
 
-    private ArrayList<HashMap<String,String>> getFileContent(File file){
+    private ArrayList<HashMap<String,String>> getFileContent(File file) throws Exception {
         ArrayList<HashMap<String,String>> entries = new ArrayList<>();
         try {
             Scanner scanner = new Scanner(file);
@@ -46,9 +45,7 @@ public class FileLoaderService {
             }
         }catch (Exception e){
             e.printStackTrace();
-            HashMap<String,String> values = new HashMap<>();
-            values.put("ERROR","ERROR READING FILE");
-            entries.add(values);
+            throw e;
         }
         return entries;
     }
