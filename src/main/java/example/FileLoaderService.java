@@ -2,8 +2,11 @@ package example;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 @Service
@@ -11,15 +14,8 @@ public class FileLoaderService {
     private static ArrayList<File> files = new ArrayList<>();
 
     @PostConstruct
-    private void loadFiles(){
-        try {
-            File[] fileList = new File("src/main/resources/data").listFiles();
-            for (File file : fileList) {
-                if (file.getName().endsWith(".csv")) {
-                    files.add(file);
-                }
-            }
-        }catch (Exception e){e.printStackTrace();}
+    private void init(){
+        loadFiles();
     }
 
     public ArrayList<HashMap<String,String>> getFile(String name){
@@ -55,5 +51,27 @@ public class FileLoaderService {
             entries.add(values);
         }
         return entries;
+    }
+
+    public boolean uploadFile(MultipartFile file){
+        try {
+            Files.write(Path.of("src/main/resources/data/" + file.getOriginalFilename()), file.getBytes());
+            loadFiles();
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private void loadFiles(){
+        try {
+            File[] fileList = new File("src/main/resources/data").listFiles();
+            for (File file : fileList) {
+                if (file.getName().endsWith(".csv")) {
+                    files.add(file);
+                }
+            }
+        }catch (Exception e){e.printStackTrace();}
     }
 }

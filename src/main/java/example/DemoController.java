@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -30,5 +32,14 @@ public class DemoController {
         if(values == null)
             return new ResponseEntity<>("File corrupted or no file found with the name: " + fileName,HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(fileLoaderService.getFile(fileName), HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/file/upload")
+    public ResponseEntity<?> uploadFile(@RequestParam(value="file") MultipartFile file){
+        boolean upload = fileLoaderService.uploadFile(file);
+        if(!upload)
+            return new ResponseEntity<>("File could not be uploaded",HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("File uploaded", HttpStatus.OK);
+
     }
 }
