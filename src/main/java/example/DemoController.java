@@ -36,10 +36,11 @@ public class DemoController {
 
     @PutMapping(path = "/file/upload")
     public ResponseEntity<?> uploadFile(@RequestParam(value="file") MultipartFile file){
-        boolean upload = fileLoaderService.uploadFile(file);
-        if(!upload)
-            return new ResponseEntity<>("File could not be uploaded",HttpStatus.INTERNAL_SERVER_ERROR);
-        return new ResponseEntity<>("File uploaded", HttpStatus.OK);
-
+        Result upload = fileLoaderService.uploadFile(file);
+        if(upload == Result.FILE_UPLOADED)
+            return new ResponseEntity<>("File uploaded", HttpStatus.OK);
+        if(upload == Result.FILE_FAILED_WRITING)
+            return new ResponseEntity<>("File failed to upload while writing",HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("File already exists with that name",HttpStatus.CONFLICT);
     }
 }

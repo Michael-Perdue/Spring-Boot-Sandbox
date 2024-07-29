@@ -53,15 +53,27 @@ public class FileLoaderService {
         return entries;
     }
 
-    public boolean uploadFile(MultipartFile file){
+    public Result uploadFile(MultipartFile file){
         try {
-            Files.write(Path.of("src/main/resources/data/" + file.getOriginalFilename()), file.getBytes());
-            loadFiles();
-            return true;
+            if(!fileExists(file.getOriginalFilename())){
+                Files.write(Path.of("src/main/resources/data/" + file.getOriginalFilename()), file.getBytes());
+                loadFiles();
+                return Result.FILE_UPLOADED;
+            }
+            return Result.FILE_ALREADY_EXISTS;
         }catch (Exception e){
             e.printStackTrace();
-            return false;
+            return Result.FILE_FAILED_WRITING;
         }
+    }
+
+    private boolean fileExists(String fileName){
+        for (File file : files) {
+            if (file.getName().equals(fileName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void loadFiles(){
