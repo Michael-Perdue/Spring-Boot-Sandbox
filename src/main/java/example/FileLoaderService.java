@@ -83,4 +83,12 @@ public class FileLoaderService {
             }
         }catch (Exception e){e.printStackTrace();}
     }
+
+    public ArrayList<String> getFileNames(){
+        ArrayList<String> names = new ArrayList<>();
+        for (File file : files) {
+            names.add(file.getName());
+        }
+        return names;
+    }
 }

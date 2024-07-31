@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class DemoController {
     }
 
 
-    @GetMapping(path="/file")
+    @GetMapping(path="/file/get")
     public ResponseEntity<?> getFile(@RequestParam(value="name",defaultValue ="GBP.csv") String fileName){
         try {
             ArrayList<HashMap<String, String>> values = fileLoaderService.getFile(fileName);
@@ -46,5 +47,12 @@ public class DemoController {
         if(upload == Result.FILE_FAILED_WRITING)
             return new ResponseEntity<>("File failed to upload while writing",HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>("File already exists with that name",HttpStatus.CONFLICT);
+    }
+
+    @GetMapping(path="/file/names")
+    public ResponseEntity<HashMap<String,ArrayList<String>>> getFiles(){
+        HashMap<String,ArrayList<String>> names = new HashMap<>();
+        names.put("files",fileLoaderService.getFileNames());
+        return new ResponseEntity<>(names, HttpStatus.OK);
     }
 }
