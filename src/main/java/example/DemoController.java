@@ -16,7 +16,7 @@ import java.util.HashMap;
 public class DemoController {
     private final FileLoaderService fileLoaderService;
 
-    @GetMapping("/hello")
+    @GetMapping(Route.HELLO)
     public ResponseEntity<String> hello() {
         return new ResponseEntity<>("Hello, World!",HttpStatus.OK);
     }
@@ -27,7 +27,7 @@ public class DemoController {
     }
 
 
-    @GetMapping(path="/file/get")
+    @GetMapping(Route.GET_FILE)
     public ResponseEntity<?> getFile(@RequestParam(value="name",defaultValue ="GBP.csv") String fileName){
         try {
             ArrayList<HashMap<String, String>> values = fileLoaderService.getFile(fileName);
@@ -39,7 +39,7 @@ public class DemoController {
         }
     }
 
-    @PutMapping(path = "/file/upload")
+    @PutMapping(Route.UPLOAD_FILE)
     public ResponseEntity<?> uploadFile(@RequestParam(value="file") MultipartFile file){
         Result upload = fileLoaderService.uploadFile(file);
         if(upload == Result.FILE_UPLOADED)
@@ -49,7 +49,7 @@ public class DemoController {
         return new ResponseEntity<>("File already exists with that name",HttpStatus.CONFLICT);
     }
 
-    @GetMapping(path="/file/names")
+    @GetMapping(Route.GET_FILE_NAMES)
     public ResponseEntity<HashMap<String,ArrayList<String>>> getFiles(){
         HashMap<String,ArrayList<String>> names = new HashMap<>();
         names.put("files",fileLoaderService.getFileNames());

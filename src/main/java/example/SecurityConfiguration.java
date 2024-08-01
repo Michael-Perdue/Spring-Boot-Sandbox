@@ -26,11 +26,11 @@ public class SecurityConfiguration{
         try {
             httpSecurity
                 .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers("/login","/hello").permitAll()
+                    .requestMatchers(Route.LOGIN,Route.HELLO).permitAll()
                     .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable());
-            httpSecurity.formLogin(formLogin -> formLogin.defaultSuccessUrl("/file/names", true));
+            httpSecurity.formLogin(formLogin -> formLogin.defaultSuccessUrl(Route.GET_FILE_NAMES, true));
             return httpSecurity.build();
         }catch (Exception e){
             e.printStackTrace();
