@@ -4,6 +4,7 @@ package example;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.view.RedirectView;
@@ -28,6 +29,7 @@ public class DemoController {
 
 
     @GetMapping(Route.GET_FILE)
+    @Secured({"ROLE_USER","ROLE_ADMIN"})
     public ResponseEntity<?> getFile(@RequestParam(value="name",defaultValue ="GBP.csv") String fileName){
         try {
             ArrayList<HashMap<String, String>> values = fileLoaderService.getFile(fileName);
@@ -40,6 +42,7 @@ public class DemoController {
     }
 
     @PutMapping(Route.UPLOAD_FILE)
+    @Secured("ROLE_ADMIN")
     public ResponseEntity<?> uploadFile(@RequestParam(value="file") MultipartFile file){
         Result upload = fileLoaderService.uploadFile(file);
         if(upload == Result.FILE_UPLOADED)
@@ -50,9 +53,16 @@ public class DemoController {
     }
 
     @GetMapping(Route.GET_FILE_NAMES)
+    @Secured({"ROLE_USER","ROLE_ADMIN"})
     public ResponseEntity<HashMap<String,ArrayList<String>>> getFiles(){
         HashMap<String,ArrayList<String>> names = new HashMap<>();
         names.put("files",fileLoaderService.getFileNames());
         return new ResponseEntity<>(names, HttpStatus.OK);
+    }
+
+    @GetMapping(Route.CHECK_ADMIN)
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<String> checkAdmin(){
+        return new ResponseEntity<>("You are an admin", HttpStatus.OK);
     }
 }

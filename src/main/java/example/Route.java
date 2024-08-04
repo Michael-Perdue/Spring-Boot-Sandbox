@@ -6,4 +6,5 @@ public class Route {
     public static final String UPLOAD_FILE = "/file/upload";
     public static final String LOGIN = "/login";
     public static final String HELLO  = "/hello" ;
+    public static final String CHECK_ADMIN = "/admin";
 }

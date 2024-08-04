@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -29,7 +30,11 @@ public class SecurityConfiguration{
                     .requestMatchers(Route.LOGIN,Route.HELLO).permitAll()
                     .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable());
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sessionManagement -> sessionManagement
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                );
+
             httpSecurity.formLogin(formLogin -> formLogin.defaultSuccessUrl(Route.GET_FILE_NAMES, true));
             return httpSecurity.build();
         }catch (Exception e){
@@ -45,7 +50,12 @@ public class SecurityConfiguration{
 
     @Bean
     public UserDetailsService userDetailsService(){
-        UserDetails user = User.withUsername("username").password(passwordEncoder().encode("password")).build();
-        return new InMemoryUserDetailsManager(user);
+        UserDetails user = User.withUsername("username")
+                .password(passwordEncoder().encode("password"))
+                .roles("USER").build();
+        UserDetails admin = User.withUsername("admin")
+                .password(passwordEncoder().encode("admin"))
+                .roles("ADMIN").build();
+        return new InMemoryUserDetailsManager(user,admin);
     }
 }
