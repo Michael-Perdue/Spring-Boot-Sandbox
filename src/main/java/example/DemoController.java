@@ -56,13 +56,18 @@ public class DemoController {
 
     @PutMapping(Route.UPLOAD_FILE)
     @Secured("ROLE_ADMIN")
-    public ResponseEntity<?> uploadFile(@RequestParam(value="file") MultipartFile file){
-        Result upload = fileLoaderService.uploadFile(file,getUserRole());
-        if(upload == Result.FILE_UPLOADED)
-            return new ResponseEntity<>("File uploaded", HttpStatus.OK);
-        if(upload == Result.FILE_FAILED_WRITING)
-            return new ResponseEntity<>("File failed to upload while writing",HttpStatus.INTERNAL_SERVER_ERROR);
-        return new ResponseEntity<>("File already exists with that name",HttpStatus.CONFLICT);
+    public ResponseEntity<?> uploadFile(@RequestParam(value="file") MultipartFile file,@RequestParam(value="auth",defaultValue ="user") String auth){
+        try {
+            AuthLevel authLevel = AuthLevel.fromString(auth);
+            Result upload = fileLoaderService.uploadFile(file,authLevel);
+            if(upload == Result.FILE_UPLOADED)
+                return new ResponseEntity<>("File uploaded", HttpStatus.OK);
+            if(upload == Result.FILE_FAILED_WRITING)
+                return new ResponseEntity<>("File failed to upload while writing",HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("File already exists with that name",HttpStatus.CONFLICT);
+        }catch (IllegalArgumentException e){
+            return new ResponseEntity<>("Invalid Auth parameter",HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping(Route.GET_FILE_NAMES)

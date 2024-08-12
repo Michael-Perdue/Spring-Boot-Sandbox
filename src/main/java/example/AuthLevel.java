@@ -10,7 +10,7 @@ public enum AuthLevel {
         this.value = value;
     }
     // Static method to get enum from a string
-    public static AuthLevel fromString(String name) {
+    public static AuthLevel fromString(String name) throws IllegalArgumentException{
         try {
             name = name.replace("ROLE_","");
             return AuthLevel.valueOf(name.toUpperCase());
