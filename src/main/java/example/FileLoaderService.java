@@ -21,17 +21,21 @@ public class FileLoaderService {
         loadFiles();
     }
 
-    public ArrayList<HashMap<String,String>> getFile(String name,AuthLevel authLevel) throws ResponseStatusException {
+    public File getFile(String name,AuthLevel authLevel) throws ResponseStatusException {
         name = name.replaceAll("\\.csv","");
         for (FileInfo file : files) {
             String foundFile = file.getName().replaceAll("\\.csv","");
             if (foundFile.equals(name)) {
                 if(file.getAuthLevel() <= authLevel.value)
-                    return getFileContent(file.getFile());
+                    return file.getFile();
                 else throw new ResponseStatusException(HttpStatus.FORBIDDEN);
             }
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+
+    public ArrayList<HashMap<String,String>> getFileResponse(String name,AuthLevel authLevel) throws ResponseStatusException {
+        return getFileContent(getFile(name,authLevel));
     }
 
     private ArrayList<HashMap<String,String>> getFileContent(File file) throws ResponseStatusException {
@@ -71,6 +75,27 @@ public class FileLoaderService {
         }
     }
 
+    public Result moveFile(String file,AuthLevel authLevel){
+        try {
+            if(fileExists(file)){
+                Path path = Path.of(getFile(file, AuthLevel.ADMIN).getPath());
+                byte[] bytes = Files.readAllBytes(path);
+                if(authLevel == AuthLevel.USER){
+                    Files.write(Path.of(Route.USER_UPLOAD + file),bytes);
+                }
+                if(authLevel == AuthLevel.ADMIN)
+                    Files.write(Path.of(Route.ADMIN_UPLOAD + file),bytes);
+                Files.delete(path);
+                loadFiles();
+                return Result.FILE_UPLOADED;
+            }
+            return Result.FILE_DOES_NOT_EXIST;
+        }catch (Exception e){
+            e.printStackTrace();
+            return Result.FILE_FAILED_WRITING;
+        }
+    }
+
     private boolean fileExists(String fileName){
         for (FileInfo file : files) {
             if (file.getName().equals(fileName)) {
@@ -82,6 +107,7 @@ public class FileLoaderService {
 
     private void loadFiles(){
         try {
+            files = new ArrayList<>();
             File[] fileList = new File(Route.USER_UPLOAD).listFiles();
             for (File file : fileList) {
                 if (file.getName().endsWith(".csv")) {

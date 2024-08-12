@@ -43,7 +43,7 @@ public class DemoController {
     public ResponseEntity<?> getFile(@RequestParam(value="name",defaultValue ="GBP.csv") String fileName){
         try {
             SecurityContextHolder.getContext().getAuthentication().getName();
-            ArrayList<HashMap<String, String>> values = fileLoaderService.getFile(fileName,getUserRole());
+            ArrayList<HashMap<String, String>> values = fileLoaderService.getFileResponse(fileName,getUserRole());
             return new ResponseEntity<>(values, HttpStatus.OK);
         }catch (ResponseStatusException e){
             if(e.getStatusCode() == HttpStatus.FORBIDDEN)
@@ -65,6 +65,22 @@ public class DemoController {
             if(upload == Result.FILE_FAILED_WRITING)
                 return new ResponseEntity<>("File failed to upload while writing",HttpStatus.INTERNAL_SERVER_ERROR);
             return new ResponseEntity<>("File already exists with that name",HttpStatus.CONFLICT);
+        }catch (IllegalArgumentException e){
+            return new ResponseEntity<>("Invalid Auth parameter",HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping(Route.MOVE_FILE)
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<?> moveFile(@RequestParam(value="file") String file,@RequestParam(value="auth",defaultValue ="user") String auth){
+        try{
+            AuthLevel authLevel = AuthLevel.fromString(auth);
+            Result move = fileLoaderService.moveFile(file,authLevel);
+            if(move == Result.FILE_UPLOADED)
+                return new ResponseEntity<>("File moved", HttpStatus.OK);
+            if(move == Result.FILE_FAILED_WRITING)
+                return new ResponseEntity<>("File failed to upload while writing",HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("File does not exists with that name",HttpStatus.CONFLICT);
         }catch (IllegalArgumentException e){
             return new ResponseEntity<>("Invalid Auth parameter",HttpStatus.BAD_REQUEST);
         }
