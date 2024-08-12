@@ -7,4 +7,7 @@ public class Route {
     public static final String LOGIN = "/login";
     public static final String HELLO  = "/hello" ;
     public static final String CHECK_ADMIN = "/admin";
+
+    public static final String ADMIN_UPLOAD = "src/main/resources/adminData/";
+    public static final String USER_UPLOAD = "src/main/resources/data/";
 }

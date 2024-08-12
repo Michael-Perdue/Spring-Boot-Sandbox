@@ -54,7 +54,7 @@ public class DemoControllerTests {
             sessionAttributes.put(attributeName, session.getAttribute(attributeName));
         }
         //Temp fix while fileLoaderService is returning null
-        when(fileLoaderService.uploadFile(any(MultipartFile.class)))
+        when(fileLoaderService.uploadFile(any(MultipartFile.class),AuthLevel.USER))
                 .thenReturn(Result.FILE_UPLOADED);
     }
 

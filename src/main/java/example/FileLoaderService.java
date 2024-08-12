@@ -1,8 +1,10 @@
 package example;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,25 +14,27 @@ import java.util.*;
 
 @Service
 public class FileLoaderService {
-    private static ArrayList<File> files = new ArrayList<>();
+    private static ArrayList<FileInfo> files = new ArrayList<>();
 
     @PostConstruct
     private void init(){
         loadFiles();
     }
 
-    public ArrayList<HashMap<String,String>> getFile(String name) throws Exception {
+    public ArrayList<HashMap<String,String>> getFile(String name,AuthLevel authLevel) throws ResponseStatusException {
         name = name.replaceAll("\\.csv","");
-        for (File file : files) {
+        for (FileInfo file : files) {
             String foundFile = file.getName().replaceAll("\\.csv","");
             if (foundFile.equals(name)) {
-                return getFileContent(file);
+                if(file.getAuthLevel() <= authLevel.value)
+                    return getFileContent(file.getFile());
+                else throw new ResponseStatusException(HttpStatus.FORBIDDEN);
             }
         }
-        return null;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
-    private ArrayList<HashMap<String,String>> getFileContent(File file) throws Exception {
+    private ArrayList<HashMap<String,String>> getFileContent(File file) throws ResponseStatusException {
         ArrayList<HashMap<String,String>> entries = new ArrayList<>();
         try {
             Scanner scanner = new Scanner(file);
@@ -45,15 +49,18 @@ public class FileLoaderService {
             }
         }catch (Exception e){
             e.printStackTrace();
-            throw e;
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return entries;
     }
 
-    public Result uploadFile(MultipartFile file){
+    public Result uploadFile(MultipartFile file,AuthLevel authLevel){
         try {
             if(!fileExists(file.getOriginalFilename())){
-                Files.write(Path.of("src/main/resources/data/" + file.getOriginalFilename()), file.getBytes());
+                if(authLevel == AuthLevel.USER)
+                    Files.write(Path.of(Route.USER_UPLOAD + file.getOriginalFilename()), file.getBytes());
+                if(authLevel == AuthLevel.ADMIN)
+                    Files.write(Path.of(Route.ADMIN_UPLOAD + file.getOriginalFilename()), file.getBytes());
                 loadFiles();
                 return Result.FILE_UPLOADED;
             }
@@ -65,7 +72,7 @@ public class FileLoaderService {
     }
 
     private boolean fileExists(String fileName){
-        for (File file : files) {
+        for (FileInfo file : files) {
             if (file.getName().equals(fileName)) {
                 return true;
             }
@@ -75,19 +82,26 @@ public class FileLoaderService {
 
     private void loadFiles(){
         try {
-            File[] fileList = new File("src/main/resources/data").listFiles();
+            File[] fileList = new File(Route.USER_UPLOAD).listFiles();
             for (File file : fileList) {
                 if (file.getName().endsWith(".csv")) {
-                    files.add(file);
+                    files.add(new FileInfo(AuthLevel.USER,file));
+                }
+            }
+            fileList = new File(Route.ADMIN_UPLOAD ).listFiles();
+            for (File file : fileList) {
+                if (file.getName().endsWith(".csv")) {
+                    files.add(new FileInfo(AuthLevel.ADMIN,file));
                 }
             }
         }catch (Exception e){e.printStackTrace();}
     }
 
-    public ArrayList<String> getFileNames(){
+    public ArrayList<String> getFileNames(AuthLevel authLevel){
         ArrayList<String> names = new ArrayList<>();
-        for (File file : files) {
-            names.add(file.getName());
+        for (FileInfo file : files) {
+            if(file.getAuthLevel() <= authLevel.value)
+                names.add(file.getName());
         }
         return names;
     }
